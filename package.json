@@ -44,6 +44,7 @@
   },
   "devDependencies": {
     "sass": "^1.69.3",
-    "sass-loader": "^13.3.2"
+    "sass-loader": "^13.3.2",
+    "source-map-loader": "^4.0.1"
   }
 }

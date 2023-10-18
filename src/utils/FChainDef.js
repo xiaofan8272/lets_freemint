@@ -1,6 +1,9 @@
-export const ChainIds = {
-  BSC: 56,
-  BSCTEST: 97,
-  MATIC: 137,
-  MATICTEST: 80001,
-}
+
+
+export const SupportedChainIds = [
+  56, //BSC
+  97, //BSCTEST
+  137,//MATIC
+  80001, //MATICTEST
+  5000, //MANTLE
+]
