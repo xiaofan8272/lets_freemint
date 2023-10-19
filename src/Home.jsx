@@ -2,10 +2,8 @@ import { React, useEffect, useState } from "react";
 import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
 import Container from "@mui/material/Container";
-import FormControlLabel from "@mui/material/FormControlLabel";
-import Checkbox from "@mui/material/Checkbox";
 import Typography from "@mui/material/Typography";
-import TextField from "@mui/material/TextField";
+import Skeleton from "@mui/material/Skeleton";
 import List from "@mui/material/List";
 import ListItem from "@mui/material/ListItem";
 import ListItemButton from "@mui/material/ListItemButton";
@@ -18,10 +16,7 @@ import FMintNFT from "./web3/FMintNFT";
 import "./Home.scss";
 const FNFTItem = (props) => {
   const { addr, library } = props;
-  const [nftInfo, setNFTInfo] = useState({
-    name: "",
-    description: "",
-  });
+  const [name, setName] = useState("");
 
   useEffect(() => {
     if (library) {
@@ -29,12 +24,16 @@ const FNFTItem = (props) => {
     }
   }, [library]);
 
+  const isReadyMint = () => {
+    return name.length > 0;
+  };
+
   const getNFTName = () => {
+    setName("");
     FMintNFT.name(addr, library)
       .then((res) => {
         if (typeof res == "string" && res.length > 0) {
-          nftInfo.name = res;
-          setNFTInfo({ ...nftInfo });
+          setName(res);
         }
       })
       .catch((err) => {
@@ -43,41 +42,36 @@ const FNFTItem = (props) => {
   };
   return (
     <ListItem disablePadding>
-      <Typography
-        sx={{
-          fontSize: "14px",
-          // fontFamily: "Saira",
-          fontWeight: "500",
-          textAlign: "center",
-          color: "black",
-        }}
-      >
-        {addr}
-      </Typography>
-      <Box sx={{ flexGrow: 1 }} />
-      <Typography
-        sx={{
-          fontSize: "14px",
-          // fontFamily: "Saira",
-          fontWeight: "500",
-          textAlign: "center",
-          color: "black",
-        }}
-      >
-        {nftInfo.name}
-      </Typography>
+      {isReadyMint() === true ? (
+        <Typography
+          sx={{
+            fontSize: "1.2rem",
+            fontFamily: "monospace",
+            fontWeight: 600,
+            textAlign: "center",
+            color: "rgba(54,61,80,1)",
+          }}
+        >
+          {name}
+        </Typography>
+      ) : (
+        <Skeleton variant="rectangular" width={"20%"} height={20} />
+      )}
+
       <Box sx={{ flexGrow: 1 }} />
       <Button
+        disabled={!isReadyMint()}
         sx={{
           display: { xs: "none", md: "flex" },
           fontFamily: "monospace",
-          fontWeight: 400,
+          fontWeight: 500,
           fontSize: "1rem",
           color: "rgba(54,61,80,1)",
           textDecoration: "none",
           borderRadius: ".6rem",
           border: 1,
-          borderColor: "rgba(54,61,80,1)",
+          borderColor:
+            isReadyMint() === true ? "rgba(54,61,80,1)" : "rgba(231,236,243,1)",
         }}
         onClick={(event) => {
           event.stopPropagation();
@@ -171,6 +165,53 @@ const Home = () => {
       console.log("Activate Fail", ex);
     }
   };
+  const renderContractList = () => {
+    return (
+      <Box
+        sx={{
+          width: "60rem",
+          marginTop: "2rem",
+        }}
+      >
+        <List>
+          {contractAddrs.map((addr, index) => {
+            return (
+              <FNFTItem
+                key={addr + index}
+                addr={addr}
+                library={library}
+                onMintClick={(addr) => {
+                  mint(addr);
+                }}
+              />
+            );
+          })}
+        </List>
+      </Box>
+    );
+  };
+  const renderNonConnect = () => {
+    return (
+      <Box
+        sx={{
+          width: "60rem",
+          marginTop: "2rem",
+        }}
+      >
+        <Typography
+          sx={{
+            fontSize: "2rem",
+            fontFamily: "monospace",
+            fontWeight: 500,
+            textAlign: "center",
+            color: "rgba(54,61,80,1)",
+          }}
+        >
+          {"Please connect to the Mantle Network"}
+        </Typography>
+      </Box>
+    );
+  };
   return (
     <Container
       disableGutters={true}
@@ -191,22 +232,7 @@ const Home = () => {
           deactivate();
         }}
       />
-      <Box
-        sx={{
-          width: "60rem",
-          marginTop:"2rem"
-        }}
-      >
-        <List>
-          {contractAddrs.map((addr, index) => {
-            return (
-              <FNFTItem key={addr + index} addr={addr} library={library} onMintClick={(addr)=>{
-                mint(addr);
-              }}/>
-            );
-          })}
-        </List>
-      </Box>
+      {account ? renderContractList() : renderNonConnect()}
     </Container>
   );
 };
