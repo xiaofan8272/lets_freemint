@@ -1,18 +1,19 @@
 import { React, useEffect, useState } from "react";
 import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
-import FormGroup from "@mui/material/FormGroup";
+import Container from "@mui/material/Container";
 import FormControlLabel from "@mui/material/FormControlLabel";
 import Checkbox from "@mui/material/Checkbox";
 import Typography from "@mui/material/Typography";
 import TextField from "@mui/material/TextField";
+import Header from "./Header";
 import { useWeb3React } from "@web3-react/core";
 import { InjectedConnector } from "@web3-react/injected-connector";
 import { SupportedChainIds } from "./utils/FChainDef";
 import FMintNFT from "./web3/FMintNFT";
 import "./Home.scss";
-function Home() {
-  const contractAddr = "0x1DE087B2Da4EC6F62c1917F39b89D1271E78fd05"; 
+const Home = () => {
+  const contractAddr = "0x1DE087B2Da4EC6F62c1917F39b89D1271E78fd05";
   const injectedConnector = new InjectedConnector({
     supportedChainIds: SupportedChainIds,
   });
@@ -26,27 +27,28 @@ function Home() {
 
   useEffect(() => {
     addWeb3Listen();
-    getNFTName();
     return () => {
       removeWeb3Listen();
     };
   }, []);
 
-  const getNFTName = () => {
+  useEffect(() => {
     if (account) {
-      FMintNFT.name(contractAddr, library)
-        .then((res) => {
-          if (typeof res == "string" && res.length > 0) {
-            nftInfo.name = res;
-            setNFTInfo({ ...nftInfo });
-          }
-        })
-        .catch((err) => {
-          console.log(err, "err");
-        });
-    } else {
-      return 0;
+      getNFTName();
     }
+  }, [account]);
+
+  const getNFTName = () => {
+    FMintNFT.name(contractAddr, library)
+      .then((res) => {
+        if (typeof res == "string" && res.length > 0) {
+          nftInfo.name = res;
+          setNFTInfo({ ...nftInfo });
+        }
+      })
+      .catch((err) => {
+        console.log(err, "err");
+      });
   };
 
   const mint = () => {
@@ -116,37 +118,14 @@ function Home() {
     }
   };
   return (
-    <Box className="home_bg" maxWidth="false">
-      <Button
-        variant="contained"
-        sx={{
-          marginTop: "42px",
-          width: "200px",
-          height: "48px",
-          fontSize: "16px",
-          fontFamily: "Saira",
-          fontWeight: "500",
-          borderRadius: "5px",
-          color: "#FFFFFF",
-        }}
-        onClick={(event) => {
-          event.stopPropagation();
-          activateMask();
-        }}
-      >
-        {"MetaMask"}
-      </Button>
-      <Typography
-        sx={{
-          fontSize: "14px",
-          // fontFamily: "Saira",
-          fontWeight: "500",
-          textAlign: "center",
-          color: "black",
-        }}
-      >
-        {account}
-      </Typography>
+    <Container disableGutters={true} maxWidth={false} sx={{
+      backgroundColor:"red",
+    }}>
+      <Header account={account} onConnectClick={()=>{
+        activateMask();
+      }} onDisconnectClick={()=>{
+        deactivate();
+      }} />
       <Typography
         sx={{
           fontSize: "14px",
@@ -177,7 +156,7 @@ function Home() {
       >
         {"MINT"}
       </Button>
-    </Box>
+    </Container>
   );
 }
 

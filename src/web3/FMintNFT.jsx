@@ -1,9 +1,10 @@
 import MTNFT from "../asset/abi/MTNFT.json";
+import MTNFTest from "../asset/abi/MTNFTest.json";
 class FMintNFT {
   static baseURL(addr, library) {
     return new Promise((resolve, reject) => {
       const _web3 = library;
-      let contract = new _web3.eth.Contract(MTNFT.abi, addr);
+      let contract = new _web3.eth.Contract(MTNFTest.abi, addr);
       try {
         contract.methods
           .baseURL()
@@ -23,7 +24,7 @@ class FMintNFT {
   static name(addr, library) {
     return new Promise((resolve, reject) => {
       const _web3 = library;
-      let contract = new _web3.eth.Contract(MTNFT.abi, addr);
+      let contract = new _web3.eth.Contract(MTNFTest.abi, addr);
       try {
         contract.methods
           .name()
@@ -43,7 +44,7 @@ class FMintNFT {
   static mint(addr, library, account) {
     return new Promise((resolve, reject) => {
       const _web3 = library;
-      let contract = new _web3.eth.Contract(MTNFT.abi, addr);
+      let contract = new _web3.eth.Contract(MTNFTest.abi, addr);
       try {
         contract.methods
           .mint()
