@@ -8,6 +8,7 @@ import List from "@mui/material/List";
 import ListItem from "@mui/material/ListItem";
 import ListItemButton from "@mui/material/ListItemButton";
 import ListItemAvatar from "@mui/material/ListItemAvatar";
+import CircularProgress from "@mui/material/CircularProgress";
 import Header from "./Header";
 import { useWeb3React } from "@web3-react/core";
 import { InjectedConnector } from "@web3-react/injected-connector";
@@ -16,7 +17,8 @@ import FMintNFT from "./web3/FMintNFT";
 import { catMetaData } from "./api/requestData";
 import "./Home.scss";
 const FNFTItem = (props) => {
-  const { addr, library } = props;
+  const { addr, account, library } = props;
+  const [minting, setMinting] = useState(false);
   const [name, setName] = useState("");
   const [imageUrl, setImageUrl] = useState("");
   const [description, setDescription] = useState("");
@@ -27,8 +29,25 @@ const FNFTItem = (props) => {
     }
   }, [library]);
 
-  const isReadyMint = () => {
-    return name.length > 0;
+  const canMint = () => {
+    return name.length > 0 && minting === false;
+  };
+
+  const mint = () => {
+    if (account && addr.length > 0) {
+      setMinting(true);
+      FMintNFT.mint(addr, library, account)
+        .then((res) => {
+          setMinting(false);
+          console.log("Mint Success", res);
+        })
+        .catch((err) => {
+          setMinting(false);
+          console.log("Mint Error", err);
+        });
+    } else {
+      return 0;
+    }
   };
 
   const fetchNFTName = () => {
@@ -103,7 +122,7 @@ const FNFTItem = (props) => {
       )}
 
       <Box sx={{ flexGrow: 1 }} />
-      {isReadyMint() === true ? (
+      {name.length > 0 ? (
         <Typography
           sx={{
             fontSize: "1.2rem",
@@ -120,27 +139,31 @@ const FNFTItem = (props) => {
       )}
 
       <Box sx={{ flexGrow: 6 }} />
-      <Button
-        disabled={!isReadyMint()}
-        sx={{
-          display: { xs: "none", md: "flex" },
-          fontFamily: "monospace",
-          fontWeight: 500,
-          fontSize: "1rem",
-          color: "rgba(54,61,80,1)",
-          textDecoration: "none",
-          borderRadius: ".6rem",
-          border: 1,
-          borderColor:
-            isReadyMint() === true ? "rgba(54,61,80,1)" : "rgba(231,236,243,1)",
-        }}
-        onClick={(event) => {
-          event.stopPropagation();
-          props.onMintClick(addr);
-        }}
-      >
-        {"MINT"}
-      </Button>
+      {minting === true ? (
+        <CircularProgress sx={{color:"rgba(54,61,80,1)"}} size="1.8rem"  />
+      ) : (
+        <Button
+          disabled={!canMint()}
+          sx={{
+            display: { xs: "none", md: "flex" },
+            fontFamily: "monospace",
+            fontWeight: 500,
+            fontSize: "1rem",
+            color: "rgba(54,61,80,1)",
+            textDecoration: "none",
+            borderRadius: ".6rem",
+            border: 1,
+            borderColor:
+              canMint() === true ? "rgba(54,61,80,1)" : "rgba(231,236,243,1)",
+          }}
+          onClick={(event) => {
+            event.stopPropagation();
+            mint();
+          }}
+        >
+          {"MINT"}
+        </Button>
+      )}
     </ListItem>
   );
 };
@@ -159,20 +182,6 @@ const Home = () => {
       removeWeb3Listen();
     };
   }, []);
-
-  const mint = (addr) => {
-    if (account && addr.length > 0) {
-      FMintNFT.mint(addr, library, account)
-        .then((res) => {
-          console.log(res, "res");
-        })
-        .catch((err) => {
-          console.log(err, "err");
-        });
-    } else {
-      return 0;
-    }
-  };
 
   const onAccounts = (accounts) => {
     console.log(`Accounts:\n${accounts.join("\n")}`);
@@ -241,9 +250,7 @@ const Home = () => {
                 key={addr + index}
                 addr={addr}
                 library={library}
-                onMintClick={(addr) => {
-                  mint(addr);
-                }}
+                account={account}
               />
             );
           })}
