@@ -11,16 +11,19 @@ import ListItemAvatar from "@mui/material/ListItemAvatar";
 import Header from "./Header";
 import { useWeb3React } from "@web3-react/core";
 import { InjectedConnector } from "@web3-react/injected-connector";
-import { SupportedChainIds } from "./utils/FChainDef";
+import { DEF_IPFS_GATEWAY, SupportedChainIds } from "./utils/FChainDef";
 import FMintNFT from "./web3/FMintNFT";
+import { catMetaData } from "./api/requestData";
 import "./Home.scss";
 const FNFTItem = (props) => {
   const { addr, library } = props;
   const [name, setName] = useState("");
-
+  const [imageUrl, setImageUrl] = useState("");
+  const [description, setDescription] = useState("");
   useEffect(() => {
     if (library) {
-      getNFTName();
+      fetchNFTName();
+      fetchTokenURI(1);
     }
   }, [library]);
 
@@ -28,20 +31,78 @@ const FNFTItem = (props) => {
     return name.length > 0;
   };
 
-  const getNFTName = () => {
+  const fetchNFTName = () => {
     setName("");
     FMintNFT.name(addr, library)
       .then((res) => {
+        console.log("Fetch NFT Name Success", res);
         if (typeof res == "string" && res.length > 0) {
           setName(res);
         }
       })
       .catch((err) => {
-        console.log(err, "err");
+        console.log("Fetch NFT Name Error", err);
       });
   };
+
+  const fetchMetaData = (metaUrl) => {
+    catMetaData(metaUrl)
+      .then((response) => {
+        console.log("Fetch NFT Meta Data Success", response);
+        const t_img_url = response.image;
+        const t_description = response.description;
+        setDescription(t_description);
+        if (t_img_url && t_img_url.length > 0) {
+          if (t_img_url.startsWith("ipfs://")) {
+            setImageUrl(DEF_IPFS_GATEWAY + t_img_url.replace("ipfs://", ""));
+          } else if (t_img_url.startsWith("https://")) {
+            setImageUrl(t_img_url);
+          }
+        }
+      })
+      .catch((err) => {
+        console.log("Fetch NFT Meta Data Error", err);
+      });
+  };
+
+  const fetchTokenURI = (tokenId) => {
+    setImageUrl("");
+    setDescription("");
+    FMintNFT.tokenURI(addr, library, tokenId)
+      .then((res) => {
+        console.log("Fetch NFT TokenURI Success", res);
+        const t_meta_url = res;
+        if (t_meta_url && t_meta_url.length > 0) {
+          if (t_meta_url.startsWith("ipfs://")) {
+            fetchMetaData(DEF_IPFS_GATEWAY + t_meta_url.replace("ipfs://", ""));
+          } else if (t_meta_url.startsWith("https://")) {
+            fetchMetaData(t_meta_url);
+          }
+        }
+      })
+      .catch((err) => {
+        console.log("Fetch NFT TokenURI Error", err);
+      });
+  };
+
   return (
     <ListItem disablePadding>
+      {imageUrl.length > 0 ? (
+        <Box
+          component="img"
+          sx={{
+            height: "6rem",
+            width: "6rem",
+            maxHeight: "6rem",
+            maxWidth: "6rem",
+          }}
+          src={imageUrl}
+        />
+      ) : (
+        <Skeleton variant="rounded" width={"6rem"} height={"6rem"} />
+      )}
+
+      <Box sx={{ flexGrow: 1 }} />
       {isReadyMint() === true ? (
         <Typography
           sx={{
@@ -55,10 +116,10 @@ const FNFTItem = (props) => {
           {name}
         </Typography>
       ) : (
-        <Skeleton variant="rectangular" width={"20%"} height={20} />
+        <Skeleton variant="rounded" width={"20%"} height={40} />
       )}
 
-      <Box sx={{ flexGrow: 1 }} />
+      <Box sx={{ flexGrow: 6 }} />
       <Button
         disabled={!isReadyMint()}
         sx={{

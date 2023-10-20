@@ -1,13 +1,13 @@
 import MTNFT from "../asset/abi/MTNFT.json";
 import MTNFTest from "../asset/abi/MTNFTest.json";
 class FMintNFT {
-  static baseURL(addr, library) {
+  static tokenURI(addr, library, tokenId) {
     return new Promise((resolve, reject) => {
       const _web3 = library;
       let contract = new _web3.eth.Contract(MTNFTest.abi, addr);
       try {
         contract.methods
-          .baseURL()
+          .tokenURI(tokenId)
           .call()
           .then((res) => {
             resolve(res);
