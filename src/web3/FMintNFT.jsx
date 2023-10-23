@@ -62,6 +62,38 @@ class FMintNFT {
       }
     });
   }
+
+  static transferEvent(addr, library) {
+    return new Promise((resolve, reject) => {
+      const _web3 = library;
+      let contract = new _web3.eth.Contract(MTNFTest.abi, addr);
+      contract.events
+        .Transfer(
+          {
+            // filter: {
+            //   myIndexedParam: [20, 23],
+            //   myOtherIndexedParam: "0x123456789...",
+            // }, // Using an array means OR: e.g. 20 or 23
+            fromBlock: 0,
+          },
+          function (error, event) {
+            console.log(event);
+          }
+        )
+        .on("connected", function (subscriptionId) {
+          console.log(subscriptionId);
+        })
+        .on("data", function (event) {
+          console.log(event); // same results as the optional callback above
+        })
+        .on("changed", function (event) {
+          // remove event from local database
+        })
+        .on("error", function (error, receipt) {
+          // If the transaction was rejected by the network with a receipt, the second parameter will be the receipt.
+        });
+    });
+  }
 }
 
 export default FMintNFT;
